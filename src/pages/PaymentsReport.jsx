@@ -96,9 +96,14 @@ export default function PaymentsReport() {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await axios.get("http://localhost:5000/api/payments", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/payments",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         setPayments(data.payments || []);
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to load payments");

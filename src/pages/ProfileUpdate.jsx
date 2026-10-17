@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-const API_BASE_URL = "http://localhost:5000/api/user/profile";
+const API_BASE_URL = "https://invoicepilotserver.onrender.com/api/user/profile";
 
 export default function ProfileUpdate() {
   const { updateUser } = useAuth();

@@ -65,9 +65,14 @@ export default function InvoicesPage() {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await axios.get("http://localhost:5000/api/invoices", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/invoices",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         const sorted = (data.invoices || []).sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at),
         );
@@ -138,9 +143,12 @@ export default function InvoicesPage() {
   const handleDelete = useCallback(async (id) => {
     if (!window.confirm("Delete this invoice?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/invoices/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await axios.delete(
+        `https://invoicepilotserver.onrender.com/api/invoices/${id}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
       setInvoices((prev) => prev.filter((i) => i.id !== id));
       toast.success("Invoice deleted");
     } catch (err) {
@@ -155,7 +163,7 @@ export default function InvoicesPage() {
     }
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/stripe/create-checkout-session",
+        "https://invoicepilotserver.onrender.com/api/stripe/create-checkout-session",
         { invoice_id: invoice.id },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -444,9 +452,14 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/clients", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/clients",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         setClients(data.clients || []);
       } catch (err) {
         toast.error("Failed to load clients");
@@ -477,7 +490,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
       };
 
       const { data } = await axios.post(
-        "http://localhost:5000/api/invoices",
+        "https://invoicepilotserver.onrender.com/api/invoices",
         payload,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

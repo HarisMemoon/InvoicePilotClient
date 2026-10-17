@@ -54,9 +54,14 @@ export default function ClientsPage() {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await axios.get("http://localhost:5000/api/clients", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/clients",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         const sorted = (data.clients || []).sort((a, b) =>
           a.name.localeCompare(b.name),
         );
@@ -104,9 +109,12 @@ export default function ClientsPage() {
   const handleDelete = useCallback(async (id) => {
     if (!window.confirm("Delete this client and all related invoices?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/clients/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await axios.delete(
+        `https://invoicepilotserver.onrender.com/api/clients/${id}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
       setClients((prev) => prev.filter((c) => c.id !== id));
       toast.success("Client deleted");
     } catch (err) {
@@ -405,14 +413,18 @@ function ClientFormModal({ client, onClose, onSuccess }) {
       let res;
       if (isEdit) {
         res = await axios.put(
-          `http://localhost:5000/api/clients/${client.id}`,
+          `https://invoicepilotserver.onrender.com/api/clients/${client.id}`,
           form,
           { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
-        res = await axios.post("http://localhost:5000/api/clients", form, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        res = await axios.post(
+          "https://invoicepilotserver.onrender.com/api/clients",
+          form,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
       }
       onSuccess(res.data.client);
     } catch (err) {

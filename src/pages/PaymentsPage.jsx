@@ -28,7 +28,7 @@ function CheckoutForm({ invoice, onSuccess }) {
       const {
         data: { clientSecret },
       } = await axios.post(
-        "http://localhost:5000/api/stripe/create-payment-intent",
+        "https://invoicepilotserver.onrender.com/api/stripe/create-payment-intent",
         {
           invoiceId: invoice.id,
           amount: invoice.total_amount * 100, // Cents
@@ -105,9 +105,12 @@ export default function PaymentsPage() {
         setLoading(true);
         setError("");
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/payments", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/payments",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         setPayments(res.data.payments || []);
       } catch (err) {
         setError(err.response?.data?.error || "Failed to load payments");

@@ -72,9 +72,14 @@ export default function DashboardHome() {
     const fetch = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get("http://localhost:5000/api/invoices", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/invoices",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         const list = data.invoices || [];
         setInvoices(list);
       } catch (e) {

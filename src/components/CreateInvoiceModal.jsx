@@ -23,9 +23,14 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!isOpen) return;
     const fetch = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/clients", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const { data } = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/clients",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
         setClients(data.clients || []);
       } catch {
         toast.error("Failed to load clients");
@@ -79,9 +84,13 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/invoices", formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await axios.post(
+        "https://invoicepilotserver.onrender.com/api/invoices",
+        formData,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
       onSuccess();
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed");

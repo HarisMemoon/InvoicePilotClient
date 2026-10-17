@@ -46,11 +46,14 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get("http://localhost:5000/api/invoices", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        const res = await axios.get(
+          "https://invoicepilotserver.onrender.com/api/invoices",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           },
-        });
+        );
 
         const invoicesData = res.data.invoices || [];
 

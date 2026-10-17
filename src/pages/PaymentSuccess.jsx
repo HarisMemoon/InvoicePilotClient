@@ -21,7 +21,7 @@ export default function PaymentSuccess() {
     const fetchInvoice = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/invoices/${invoiceId}`,
+          `https://invoicepilotserver.onrender.com/api/invoices/${invoiceId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
