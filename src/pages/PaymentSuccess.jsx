@@ -26,7 +26,7 @@ export default function PaymentSuccess() {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
+          },
         );
         setInvoice(data.invoice);
       } catch (err) {
@@ -94,7 +94,7 @@ export default function PaymentSuccess() {
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl font-bold text-center text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
           Payment Successful!
         </h1>
         <p className="text-center text-gray-600 mb-8">

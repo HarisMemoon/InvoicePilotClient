@@ -197,7 +197,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto p-6 pt-24 space-y-8">
         {/* Header */}
         <header className="space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             Welcome back,{" "}
             {user?.user_metadata?.name || user?.email?.split("@")[0] || "User"}!
             <span className="text-3xl animate-wave">Wave</span>

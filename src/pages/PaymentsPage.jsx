@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CreditCard, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { CreditCard, X, Receipt } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -34,14 +35,14 @@ function CheckoutForm({ invoice, onSuccess }) {
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+        },
       );
 
       const { error: stripeError } = await stripe.confirmCardPayment(
         clientSecret,
         {
           payment_method: { card: elements.getElement(CardElement) },
-        }
+        },
       );
 
       if (stripeError) throw new Error(stripeError.message);
@@ -193,8 +194,8 @@ export default function PaymentsPage() {
                               payment.status === "paid"
                                 ? "bg-green-100 text-green-800"
                                 : payment.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
                             }`}
                           >
                             {payment.status}
@@ -221,33 +222,71 @@ export default function PaymentsPage() {
         </div>
 
         {/* Payment Modal for Selected Invoice */}
-        {selectedInvoice && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-lg w-full">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold">
-                  Pay Invoice {selectedInvoice.invoice_number}
-                </h2>
-                <button
-                  onClick={() => setSelectedInvoice(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-              <p className="mb-4 text-gray-600">
-                Total: ${selectedInvoice.total_amount.toFixed(2)}
-              </p>
-              <CheckoutForm
-                invoice={selectedInvoice}
-                onSuccess={() => {
-                  setSelectedInvoice(null);
-                  // Refetch payments
-                }}
+        <AnimatePresence>
+          {selectedInvoice && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-inter">
+              {/* Blurred Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedInvoice(null)}
+                className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
               />
+
+              {/* Modal Content */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                      <Receipt className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Pay Invoice #{selectedInvoice.invoice_number}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setSelectedInvoice(null)}
+                    className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6">
+                  {/* Highlighted Amount Box */}
+                  <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-5 mb-6 border border-blue-100 dark:border-blue-800/30">
+                    <span className="text-sm font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
+                      Total Due
+                    </span>
+                    <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ${selectedInvoice.total_amount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Checkout Form Wrapper */}
+                  <div className="mt-2">
+                    <CheckoutForm
+                      invoice={selectedInvoice}
+                      onSuccess={() => {
+                        setSelectedInvoice(null);
+                        // Refetch payments
+                      }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
       </div>
     </Elements>
   );

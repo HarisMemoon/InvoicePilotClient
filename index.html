@@ -1,18 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx">
-          if (localStorage.getItem("darkMode") === "true" ||
-          (!localStorage.getItem("darkMode") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    <title>Invoice Pilot</title>
+
+    <!-- 1. Dark Mode Check (In Head to prevent flashing) -->
+    <script>
+      if (
+        localStorage.getItem("theme") === "dark" ||
+        (!localStorage.getItem("theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
         document.documentElement.classList.add("dark");
       }
     </script>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div id="root">
+      <!-- 2. Tailwind Logo as a Pre-loader (Converted to standard HTML) -->
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="relative">
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl blur-md opacity-70"
+          ></div>
+          <div
+            class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg"
+          >
+            IP
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. React App Entry Point (Empty script body) -->
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* This tells Tailwind v4 to trigger dark mode when the .dark class is on the HTML */
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  /* Keep your other base styles here if you have any */
+}
 
 @keyframes blob {
   0% {
@@ -22,11 +25,9 @@
 .animate-blob {
   animation: blob 15s infinite;
 }
-
 .animation-delay-2000 {
   animation-delay: 2s;
 }
-
 .animation-delay-4000 {
   animation-delay: 4s;
 }

@@ -6,7 +6,6 @@ import {
   BarChart3,
   LogOut,
   ChevronLeft,
-  ChevronRight,
   Menu,
   LayoutDashboard,
   MoreVertical,
@@ -14,10 +13,11 @@ import {
   Moon,
   UserCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "../hooks/useDarkMode";
 
 export default function Sidebar() {
   const { logout } = useAuth();
@@ -25,10 +25,13 @@ export default function Sidebar() {
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [menuPosition, setMenuPosition] = useState({ left: 0, bottom: 0 });
   const [loadingImage, setLoadingImage] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
+  // Refs to detect clicks outside the menu
+  const buttonRef = useRef(null);
+  const menuRef = useRef(null);
 
   const userJson = localStorage.getItem("user");
   let user = {};
@@ -39,7 +42,6 @@ export default function Sidebar() {
     localStorage.removeItem("user");
   }
 
-  // Sidebar links
   const links = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/dashboard/invoices", label: "Invoices", icon: FileText },
@@ -47,27 +49,6 @@ export default function Sidebar() {
     { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
     { to: "/dashboard/profile-update", label: "Profile", icon: UserCircle },
   ];
-
-  // ── Dark Mode Handling ──
-  useEffect(() => {
-    const saved = localStorage.getItem("darkMode") === "true";
-    setDarkMode(saved);
-    document.documentElement.classList.toggle("dark", saved);
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-
-    localStorage.setItem("darkMode", newMode);
-    if (newMode) {
-      document.documentElement.classList.add("dark");
-      console.log(newMode);
-    } else {
-      document.documentElement.classList.remove("dark");
-      console.log(newMode);
-    }
-  };
 
   // ── Responsive Sidebar ──
   useEffect(() => {
@@ -86,12 +67,34 @@ export default function Sidebar() {
 
   const sidebarWidth = collapsed ? 72 : 260;
 
-  // ── Menu Toggle ──
+  // ── Menu Toggle & Position ──
   const handleMenuToggle = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setMenuPosition({ x: rect.left, y: rect.top - 220 });
+    setMenuPosition({
+      // If collapsed, open to the right. If open, align right edge of menu (224px wide) with right edge of button
+      left: collapsed ? rect.right + 16 : rect.right - 224,
+      // Place right above the button
+      bottom: window.innerHeight - rect.top + 10,
+    });
     setMenuOpen(!menuOpen);
   };
+
+  // Close menu if clicked outside of BOTH the button and the menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        menuOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   return (
     <>
@@ -120,7 +123,7 @@ export default function Sidebar() {
             collapsed ? "flex-col gap-2" : "flex-row gap-3"
           } transition-all duration-300`}
         >
-          {/* 🌈 Logo */}
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl blur-md opacity-70" />
@@ -129,7 +132,6 @@ export default function Sidebar() {
               </div>
             </div>
 
-            {/* Title */}
             <AnimatePresence>
               {!collapsed && (
                 <motion.div
@@ -149,7 +151,7 @@ export default function Sidebar() {
             </AnimatePresence>
           </div>
 
-          {/* 🔘 Collapse Button */}
+          {/* Collapse Button */}
           <motion.button
             onClick={() => setCollapsed(!collapsed)}
             className={`p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition-all hidden lg:flex ${
@@ -157,12 +159,11 @@ export default function Sidebar() {
             }`}
             whileTap={{ scale: 0.95 }}
           >
-            <motion.div animate={{ rotate: collapsed ? 180 : 0 }}>
-              {collapsed ? (
-                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-              ) : (
-                <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-              )}
+            <motion.div
+              animate={{ rotate: collapsed ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             </motion.div>
           </motion.button>
         </div>
@@ -272,62 +273,89 @@ export default function Sidebar() {
             </AnimatePresence>
 
             {/* MENU BUTTON */}
-            <motion.button
-              onClick={handleMenuToggle}
-              whileTap={{ scale: 0.9 }}
-              className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all ${
-                collapsed ? "absolute bottom-2 right-2" : "ml-auto"
-              }`}
+            <div
+              className={`flex items-center gap-1 ${collapsed ? "flex-col" : "ml-auto"}`}
             >
-              <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </motion.button>
+              {/* THEME TOGGLE ICON */}
+              <motion.button
+                onClick={toggleTheme}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </motion.button>
+
+              {/* MENU BUTTON */}
+              <motion.button
+                ref={buttonRef}
+                onClick={handleMenuToggle}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </motion.button>
+            </div>
           </div>
         </div>
       </motion.aside>
 
       {/* ── MENU PORTAL ── */}
-      {menuOpen &&
-        createPortal(
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            style={{
-              position: "fixed",
-              left: collapsed ? menuPosition.x - 40 : menuPosition.x - 180,
-              top: menuPosition.y,
-              zIndex: 9999,
-            }}
-            className="w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={toggleDarkMode}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+      {createPortal(
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              ref={menuRef}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              style={{
+                position: "fixed",
+                left: menuPosition.left,
+                bottom: menuPosition.bottom,
+                zIndex: 9999,
+              }}
+              className="w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2"
             >
-              {darkMode ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
-              {darkMode ? "Light Mode" : "Dark Mode"}
-            </button>
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  if (setMenuOpen) setMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </button>
 
-            <button
-              onClick={logout}
-              className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </motion.div>,
-          document.body
-        )}
+              <button
+                onClick={() => {
+                  logout();
+                  setMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
 
       {/* ── MOBILE OVERLAY ── */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
