@@ -74,14 +74,11 @@ export default function DashboardHome() {
     const fetch = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(
-          `/api/invoices`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const { data } = await api.get(`/api/invoices`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const list = data.invoices || [];
         setInvoices(list);
       } catch (e) {
@@ -125,6 +122,7 @@ export default function DashboardHome() {
       },
     ];
   }, [invoices]);
+  const revenueNeedsFullRow = (stats[0]?.value ?? 0) >= 100_000_000;
   // ------------------------------------------------------------------
   // 5. OVERDUE ALERT
   // ------------------------------------------------------------------
@@ -205,13 +203,13 @@ export default function DashboardHome() {
           description={`Welcome back, ${user?.full_name || user?.email?.split("@")[0] || "there"}. Here’s what’s happening with your business today.`}
           icon={LayoutDashboard}
           action={
-          <Link
-            to="/dashboard/invoices"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/20 shrink-0"
-          >
-            <FileText className="w-5 h-5" />
-            Create Invoice
-          </Link>
+            <Link
+              to="/dashboard/invoices"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/20 shrink-0"
+            >
+              <FileText className="w-5 h-5" />
+              Create Invoice
+            </Link>
           }
         />
 
@@ -260,31 +258,37 @@ export default function DashboardHome() {
         </AnimatePresence>
 
         {/* STATS GRID (Restored & Redesigned) */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <section
+          className={`grid grid-cols-1 gap-6 ${
+            revenueNeedsFullRow
+              ? "sm:grid-cols-2"
+              : "sm:grid-cols-2 xl:grid-cols-3"
+          }`}
+        >
           {stats.map((s, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-default overflow-hidden"
+              className={`group relative min-w-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-default overflow-hidden ${s.isMoney && revenueNeedsFullRow ? "sm:col-span-2" : ""}`}
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${s.color} opacity-10 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-30 transition-opacity`}
               />
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
+              <div className="relative z-10 flex min-w-0 items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {s.label}
                   </p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+                  <p className="mt-2 whitespace-nowrap text-2xl font-bold tabular-nums text-gray-900 dark:text-white sm:text-3xl">
                     {s.isMoney
-                      ? `$${s.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      ? `$${s.value.toLocaleString(undefined, { minimumFractionDigits: s.value >= 1000 ? 0 : 2, maximumFractionDigits: s.value >= 1000 ? 0 : 2 })}`
                       : s.value}
                   </p>
                 </div>
                 <div
-                  className={`p-3 rounded-xl bg-gradient-to-br ${s.color} text-white shadow-md`}
+                  className={`shrink-0 p-3 rounded-xl bg-gradient-to-br ${s.color} text-white shadow-md`}
                 >
                   <s.icon className="w-6 h-6" />
                 </div>
