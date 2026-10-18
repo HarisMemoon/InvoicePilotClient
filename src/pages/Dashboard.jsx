@@ -1,7 +1,7 @@
 // src/pages/DashboardHome.jsx
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import DashboardPageLoader from "../components/DashboardPageLoader";
 import {
   FileText,
@@ -72,8 +72,8 @@ export default function DashboardHome() {
     const fetch = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
+        const { data } = await api.get(
+          `/api/invoices`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

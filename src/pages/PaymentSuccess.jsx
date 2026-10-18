@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle, FileText, ArrowLeft, Download, Mail } from "lucide-react";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-hot-toast";
 
 export default function PaymentSuccess() {
@@ -20,8 +20,8 @@ export default function PaymentSuccess() {
 
     const fetchInvoice = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`,
+        const { data } = await api.get(
+          `/api/invoices/${invoiceId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

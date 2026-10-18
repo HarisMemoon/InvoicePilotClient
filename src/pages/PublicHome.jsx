@@ -43,7 +43,7 @@ export default function PublicHome() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0B0C10] text-gray-900 dark:text-gray-100 font-inter selection:bg-blue-500/30 transition-colors duration-300">
       {/* BACKGROUND EFFECTS */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-400/20 via-transparent to-transparent dark:from-blue-600/10 dark:via-transparent dark:to-transparent opacity-60 blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-400/20 via-transparent to-transparent dark:from-blue-600/10 dark:via-transparent dark:to-transparent opacity-60 " />
       </div>
 
       {/* NAVBAR (Mock for structure) */}
@@ -105,7 +105,7 @@ export default function PublicHome() {
 
         {/* Mobile Dropdown Menu */}
         {isOpen && (
-          <div className="md:hidden px-6 pb-6 pt-2 space-y-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-xl">
+          <div className="md:hidden px-6 pb-6 pt-2 space-y-3 bg-white/95 dark:bg-gray-900/95  border-b border-gray-200 dark:border-gray-800 shadow-xl">
             <div className="flex flex-col gap-2 pt-2 border-b border-gray-100 dark:border-gray-800">
               <Link
                 to="/login"
@@ -371,8 +371,8 @@ export default function PublicHome() {
       <section className="relative z-10 py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="bg-blue-600 dark:bg-blue-600 rounded-[2.5rem] p-10 md:p-16 text-center relative overflow-hidden shadow-2xl shadow-blue-900/20">
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black opacity-10 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white opacity-10 rounded-full " />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black opacity-10 rounded-full " />
 
             <div className="relative z-10">
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">

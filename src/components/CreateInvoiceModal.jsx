@@ -1,6 +1,6 @@
 // src/components/CreateInvoiceModal.jsx
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { Plus, Minus, X, Users } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ModalWrapper from "./ModalWrapper";
@@ -24,8 +24,8 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!isOpen) return;
     const fetch = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
+        const { data } = await api.get(
+          `/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -85,7 +85,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, formData, {
+      await api.post(`/api/invoices`, formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       onSuccess();

@@ -1,7 +1,7 @@
 // src/pages/ClientsPage.jsx
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import DashboardPageLoader from "../components/DashboardPageLoader";
 import { toast } from "react-hot-toast";
 import {
@@ -55,8 +55,8 @@ export default function ClientsPage() {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
+        const { data } = await api.get(
+          `/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -110,8 +110,8 @@ export default function ClientsPage() {
   const handleDelete = useCallback(async (id) => {
     if (!window.confirm("Delete this client and all related invoices?")) return;
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/clients/${id}`,
+      await api.delete(
+        `/api/clients/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -411,14 +411,14 @@ function ClientFormModal({ client, onClose, onSuccess }) {
       const token = localStorage.getItem("token");
       let res;
       if (isEdit) {
-        res = await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL}/api/clients/${client.id}`,
+        res = await api.put(
+          `/api/clients/${client.id}`,
           form,
           { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
-        res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
+        res = await api.post(
+          `/api/clients`,
           form,
           {
             headers: { Authorization: `Bearer ${token}` },

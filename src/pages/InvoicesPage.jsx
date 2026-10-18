@@ -1,7 +1,7 @@
 // src/pages/InvoicesPage.jsx
 import { lazy, Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-hot-toast";
 import {
   FileText,
@@ -62,8 +62,8 @@ export default function InvoicesPage() {
 
     let isCurrent = true;
     setInvoiceDetailLoading(true);
-    axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
+    api
+      .get(`/api/invoices/${invoiceId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then(({ data }) => {
@@ -105,8 +105,8 @@ export default function InvoicesPage() {
       if (!user) return;
       try {
         setLoading(true);
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
+        const { data } = await api.get(
+          `/api/invoices`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -151,15 +151,15 @@ export default function InvoicesPage() {
         try {
           let receipt;
           if (sessionId) {
-            const { data } = await axios.get(
-              `${import.meta.env.VITE_BACKEND_URL}/api/stripe/checkout-session/${encodeURIComponent(sessionId)}/receipt`,
+            const { data } = await api.get(
+              `/api/stripe/checkout-session/${encodeURIComponent(sessionId)}/receipt`,
               { headers },
             );
             receipt = data.receipt;
           } else {
             const [{ data: paymentData }, { data: invoiceData }] = await Promise.all([
-              axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payments/invoice/${invoiceId}`, { headers }),
-              axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, { headers }),
+              api.get(`/api/payments/invoice/${invoiceId}`, { headers }),
+              api.get(`/api/invoices/${invoiceId}`, { headers }),
             ]);
             const payment = paymentData.payment;
             receipt = {
@@ -245,8 +245,8 @@ export default function InvoicesPage() {
   const handleDelete = useCallback(async (id) => {
     if (!window.confirm("Delete this invoice?")) return;
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/invoices/${id}`,
+      await api.delete(
+        `/api/invoices/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -264,8 +264,8 @@ export default function InvoicesPage() {
       return;
     }
     try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/stripe/create-checkout-session`,
+      const { data } = await api.post(
+        `/api/stripe/create-checkout-session`,
         { invoice_id: invoice.id },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -584,8 +584,8 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
+        const { data } = await api.get(
+          `/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -625,8 +625,8 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
         })),
       };
 
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
+      const { data } = await api.post(
+        `/api/invoices`,
         payload,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -968,8 +968,8 @@ function InvoiceReceiptDownload({ invoice, verifiedReceipt }) {
       setLoading(true);
       setError(false);
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/payments/invoice/${invoice.id}`,
+        const { data } = await api.get(
+          `/api/payments/invoice/${invoice.id}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } },
         );
         const payment = data.payment;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { CreditCard, X, Receipt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -13,8 +13,8 @@ function CheckoutForm({ invoice }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/stripe/create-checkout-session`,
+      const { data } = await api.post(
+        `/api/stripe/create-checkout-session`,
         { invoice_id: invoice.id },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -80,7 +80,7 @@ export default function PaymentsPage() {
         setLoading(true);
         setError("");
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payments`, {
+        const res = await api.get(`/api/payments`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPayments(res.data.payments || []);

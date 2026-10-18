@@ -11,7 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import axios from "axios";
+import api from "../api";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -46,8 +46,8 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
+        const res = await api.get(
+          `/api/invoices`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

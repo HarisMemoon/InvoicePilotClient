@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+import api from "../api";
 import {
   User,
   Building,
@@ -18,7 +18,7 @@ import { useAuth } from "../context/AuthContext";
 import FilterSelect from "../components/FilterSelect";
 import DashboardPageLoader from "../components/DashboardPageLoader";
 
-const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/user/profile`;
+const API_BASE_URL = `/api/user/profile`;
 
 export default function ProfileUpdate() {
   const { updateUser } = useAuth();
@@ -50,7 +50,7 @@ export default function ProfileUpdate() {
       if (!token) return;
 
       try {
-        const { data } = await axios.get(API_BASE_URL, {
+        const { data } = await api.get(API_BASE_URL, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -135,7 +135,7 @@ export default function ProfileUpdate() {
 
     try {
       const token = localStorage.getItem("token");
-      const { data } = await axios.put(API_BASE_URL, formData, {
+      const { data } = await api.put(API_BASE_URL, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
