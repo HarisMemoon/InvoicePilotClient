@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await axios.post(
-        "https://invoicepilotserver.onrender.com/api/auth/login",
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
         { email, password },
         { withCredentials: true },
       );
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (full_name, email, password, company_name = "") => {
     try {
       const res = await axios.post(
-        "https://invoicepilotserver.onrender.com/api/auth/signup",
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
         {
           full_name,
           email,

@@ -97,7 +97,7 @@ export default function PaymentsReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/payments",
+          `${import.meta.env.VITE_BACKEND_URL}/api/payments`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

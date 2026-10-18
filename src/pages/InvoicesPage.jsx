@@ -66,7 +66,7 @@ export default function InvoicesPage() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/invoices",
+          `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -144,7 +144,7 @@ export default function InvoicesPage() {
     if (!window.confirm("Delete this invoice?")) return;
     try {
       await axios.delete(
-        `https://invoicepilotserver.onrender.com/api/invoices/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/invoices/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -163,7 +163,7 @@ export default function InvoicesPage() {
     }
     try {
       const { data } = await axios.post(
-        "https://invoicepilotserver.onrender.com/api/stripe/create-checkout-session",
+        `${import.meta.env.VITE_BACKEND_URL}/api/stripe/create-checkout-session`,
         { invoice_id: invoice.id },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -453,7 +453,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
     const fetchClients = async () => {
       try {
         const { data } = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/clients",
+          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -490,7 +490,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
       };
 
       const { data } = await axios.post(
-        "https://invoicepilotserver.onrender.com/api/invoices",
+        `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
         payload,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

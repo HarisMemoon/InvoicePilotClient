@@ -24,7 +24,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     const fetch = async () => {
       try {
         const { data } = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/clients",
+          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -84,13 +84,9 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      await axios.post(
-        "https://invoicepilotserver.onrender.com/api/invoices",
-        formData,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
-      );
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, formData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
       onSuccess();
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed");

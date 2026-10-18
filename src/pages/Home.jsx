@@ -47,7 +47,7 @@ export default function Home() {
         setError("");
 
         const res = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/invoices",
+          `${import.meta.env.VITE_BACKEND_URL}/api/invoices`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

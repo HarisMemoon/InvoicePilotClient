@@ -1,4 +1,5 @@
 // src/pages/PublicHome.jsx
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -12,12 +13,15 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  Menu,
+  X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../hooks/useDarkMode";
 
 export default function PublicHome() {
   const { isDark, toggleTheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
     show: {
@@ -43,40 +47,100 @@ export default function PublicHome() {
       </div>
 
       {/* NAVBAR (Mock for structure) */}
-      <nav className="relative z-10 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-            IP
+      <header className="relative z-50">
+        <nav className="relative z-10 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-2">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              IP
+            </div>
+            <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              InvoicePilot
+            </div>
           </div>
-          <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            InvoicePilot
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            <Link
+              to="/login"
+              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+            >
+              Log in
+            </Link>
+            <Link
+              to="/register"
+              className="text-sm font-medium px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition active:scale-95"
+            >
+              Sign up
+            </Link>
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-sm"
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/login"
-            className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-          >
-            Log in
-          </Link>
-          <Link
-            to="/register"
-            className="text-sm font-medium px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition active:scale-95"
-          >
-            Sign up
-          </Link>
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-sm"
-          >
-            {isDark ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
-        </div>
-      </nav>
+
+          {/* Mobile Hamburger Button */}
+          <div className="flex md:hidden items-center">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle navigation menu"
+              aria-expanded={isOpen}
+              className="p-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+            >
+              {isOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile Dropdown Menu */}
+        {isOpen && (
+          <div className="md:hidden px-6 pb-6 pt-2 space-y-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-xl">
+            <div className="flex flex-col gap-2 pt-2 border-b border-gray-100 dark:border-gray-800">
+              <Link
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="w-full text-center py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsOpen(false)}
+                className="w-full text-center py-2.5 text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg  hover:bg-gray-800 dark:hover:bg-gray-100 transition shadow-sm active:scale-95"
+              >
+                Sign up
+              </Link>
+            </div>
+            <div className="flex items-center justify-between py-2 ">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {isDark ? "Apply light theme" : "Apply dark theme"}
+              </span>
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
 
       {/* HERO SECTION */}
       <section className="relative z-10 pt-24 pb-32 px-6">

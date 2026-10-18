@@ -55,7 +55,7 @@ export default function ClientsPage() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "https://invoicepilotserver.onrender.com/api/clients",
+          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -110,7 +110,7 @@ export default function ClientsPage() {
     if (!window.confirm("Delete this client and all related invoices?")) return;
     try {
       await axios.delete(
-        `https://invoicepilotserver.onrender.com/api/clients/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/clients/${id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
@@ -413,13 +413,13 @@ function ClientFormModal({ client, onClose, onSuccess }) {
       let res;
       if (isEdit) {
         res = await axios.put(
-          `https://invoicepilotserver.onrender.com/api/clients/${client.id}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/clients/${client.id}`,
           form,
           { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
         res = await axios.post(
-          "https://invoicepilotserver.onrender.com/api/clients",
+          `${import.meta.env.VITE_BACKEND_URL}/api/clients`,
           form,
           {
             headers: { Authorization: `Bearer ${token}` },
