@@ -186,12 +186,9 @@ export default function ClientsPage() {
         {/* STATS GRID */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           {stats.map((s, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden"
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${s.color} opacity-5 group-hover:opacity-10 transition-opacity`}
@@ -211,7 +208,7 @@ export default function ClientsPage() {
                   <s.icon className="w-6 h-6" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </section>
 
@@ -223,12 +220,12 @@ export default function ClientsPage() {
             placeholder="Search by name, email, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white/80 dark:bg-gray-800 backdrop-blur-md outline-none transition"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 bg-white dark:bg-gray-800 outline-none transition"
           />
         </div>
 
         {/* TABLE */}
-        <section className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           {loading ? (
             <DashboardPageLoader message="Loading clients..." className="min-h-[240px]" />
           ) : filtered.length === 0 ? (
@@ -256,14 +253,9 @@ export default function ClientsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                  <AnimatePresence>
-                    {filtered.map((c) => (
-                      <motion.tr
-                        layout
+                  {filtered.map((c) => (
+                      <tr
                         key={c.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
                         className="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors cursor-pointer group"
                         onClick={() => setSelectedClient(c)}
                       >
@@ -305,7 +297,7 @@ export default function ClientsPage() {
                           {c.address || "—"}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-1 opacity-100">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -339,9 +331,8 @@ export default function ClientsPage() {
                             </button>
                           </div>
                         </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
+                      </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -438,7 +429,7 @@ function ClientFormModal({ client, onClose, onSuccess }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -548,7 +539,7 @@ function ClientViewModal({ client, onClose, onEdit }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -576,7 +567,7 @@ function ClientViewModal({ client, onClose, onEdit }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>

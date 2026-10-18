@@ -3,6 +3,62 @@
 /* This tells Tailwind v4 to trigger dark mode when the .dark class is on the HTML */
 @custom-variant dark (&:is(.dark *));
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dark * {
+  scrollbar-color: #475569 transparent;
+}
+
+:root.dark {
+  scrollbar-color: #475569 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: #cbd5e1;
+  background-clip: content-box;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+:root.dark::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
 @layer base {
   /* Keep your other base styles here if you have any */
 }

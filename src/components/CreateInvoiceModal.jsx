@@ -14,7 +14,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     issue_date: new Date().toISOString().split("T")[0],
     due_date: "",
     status: "draft",
-    items: [{ description: "", quantity: 1, unit_price: 0 }],
+    items: [{ description: "", quantity: "", unit_price: "" }],
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -53,7 +53,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
       ...formData,
       items: [
         ...formData.items,
-        { description: "", quantity: 1, unit_price: 0 },
+        { description: "", quantity: "", unit_price: "" },
       ],
     });
   const removeItem = (i) =>
@@ -74,8 +74,8 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!formData.due_date) e.due_date = "Required";
     formData.items.forEach((it, i) => {
       if (!it.description) e[`d${i}`] = "Description required";
-      if (it.quantity <= 0) e[`q${i}`] = "Qty > 0";
-      if (it.unit_price < 0) e[`p${i}`] = "Price ≥ 0";
+      if (Number(it.quantity) <= 0) e[`q${i}`] = "Quantity must be greater than 0";
+      if (it.unit_price === "" || Number(it.unit_price) < 0) e[`p${i}`] = "Enter a valid price";
     });
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -85,7 +85,14 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      await api.post(`/api/invoices`, formData, {
+      await api.post(`/api/invoices`, {
+        ...formData,
+        invoice_items: formData.items.map((item) => ({
+          ...item,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price),
+        })),
+      }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       onSuccess();
@@ -207,8 +214,10 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
             {/* QTY */}
             <input
               type="number"
-              placeholder="Qty"
+              placeholder="Quantity"
               name="quantity"
+              min="1"
+              required
               value={it.quantity}
               onChange={(e) => handleItemChange(i, e)}
               className={`col-span-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
@@ -218,8 +227,11 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
             {/* PRICE */}
             <input
               type="number"
-              placeholder="Price"
+              placeholder="Unit price"
               name="unit_price"
+              min="0"
+              step="0.01"
+              required
               value={it.unit_price}
               onChange={(e) => handleItemChange(i, e)}
               className={`col-span-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${

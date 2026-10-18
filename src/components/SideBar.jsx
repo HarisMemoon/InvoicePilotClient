@@ -101,7 +101,7 @@ export default function Sidebar() {
       {/* ── MOBILE TOGGLE ── */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 right-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg lg:hidden"
+        className="fixed top-4 right-4 z-50 p-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg lg:hidden"
       >
         <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
@@ -126,7 +126,6 @@ export default function Sidebar() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl blur-md opacity-70" />
               <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 IP
               </div>
@@ -227,7 +226,6 @@ export default function Sidebar() {
                 collapsed ? "w-12 h-12" : "w-10 h-10"
               } rounded-full overflow-hidden shadow-lg shrink-0`}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full blur-md opacity-70 scale-110" />
 
               {user?.profile_image && !loadingImage ? (
                 <img
@@ -355,7 +353,7 @@ export default function Sidebar() {
       {/* ── MOBILE OVERLAY ── */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
