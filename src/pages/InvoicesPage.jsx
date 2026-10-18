@@ -1,6 +1,6 @@
 // src/pages/InvoicesPage.jsx
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import {
@@ -18,12 +18,18 @@ import {
   Loader2,
   X,
   Calendar,
+  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import FilterSelect from "../components/FilterSelect";
 import DateInput from "../components/DateInput";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+
+const PDFDownloadLink = lazy(() =>
+  import("@react-pdf/renderer").then((module) => ({ default: module.PDFDownloadLink })),
+);
+const PaymentReceiptPDF = lazy(() => import("../components/PaymentReceiptPDF"));
 
 const INVOICE_STATUS_OPTIONS = [
   { label: "All Status", value: "all" },
@@ -35,6 +41,7 @@ const INVOICE_STATUS_OPTIONS = [
 
 export default function InvoicesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // 1. STATE
   const [user, setUser] = useState(null);
@@ -46,6 +53,7 @@ export default function InvoicesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [invoiceDetailLoading, setInvoiceDetailLoading] = useState(false);
+  const [paymentReturn, setPaymentReturn] = useState(null);
   const selectedInvoiceHasDetails = Boolean(selectedInvoice?.invoice_items);
 
   useEffect(() => {
@@ -115,6 +123,71 @@ export default function InvoicesPage() {
     };
     fetchInvoices();
   }, [user]);
+
+  // Stripe sends the customer back here. Confirm via Stripe (new links), or
+  // use the user's recorded payment for older links containing only paid=ID.
+  useEffect(() => {
+    if (!user) return;
+    const invoiceId = searchParams.get("paid");
+    const sessionId = searchParams.get("session_id");
+    const canceledId = searchParams.get("canceled");
+    const failedId = searchParams.get("payment_failed");
+    if (failedId) {
+      setPaymentReturn({ status: "failed", invoiceId: failedId });
+      return;
+    }
+    if (canceledId) {
+      setPaymentReturn({ status: "canceled", invoiceId: canceledId });
+      return;
+    }
+    if (!invoiceId) return;
+
+    let active = true;
+    const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const confirmPayment = async () => {
+      setPaymentReturn({ status: "checking", invoiceId });
+      for (let attempt = 0; attempt < 10 && active; attempt += 1) {
+        try {
+          let receipt;
+          if (sessionId) {
+            const { data } = await axios.get(
+              `${import.meta.env.VITE_BACKEND_URL}/api/stripe/checkout-session/${encodeURIComponent(sessionId)}/receipt`,
+              { headers },
+            );
+            receipt = data.receipt;
+          } else {
+            const [{ data: paymentData }, { data: invoiceData }] = await Promise.all([
+              axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payments/invoice/${invoiceId}`, { headers }),
+              axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, { headers }),
+            ]);
+            const payment = paymentData.payment;
+            receipt = {
+              invoice: invoiceData.invoice,
+              amount_paid: Number(payment.amount),
+              currency: (payment.currency || "USD").toUpperCase(),
+              paid_at: payment.paid_at,
+              payment_reference: payment.stripe_payment_id || payment.id,
+            };
+          }
+          if (!active) return;
+          setPaymentReturn({ status: "success", invoiceId, receipt });
+          setInvoices((current) => current.map((invoice) => invoice.id === invoiceId ? { ...invoice, status: "paid" } : invoice));
+          return;
+        } catch (err) {
+          if (!active) return;
+          const pending = err.response?.status === 409 || (!sessionId && err.response?.status === 404);
+          if (!pending || attempt === 9) {
+            setPaymentReturn({ status: "error", invoiceId });
+            return;
+          }
+          await delay(1200);
+        }
+      }
+    };
+    confirmPayment();
+    return () => { active = false; };
+  }, [user, searchParams]);
 
   // 4. FILTER & SEARCH
   const filtered = useMemo(() => {
@@ -278,6 +351,37 @@ export default function InvoicesPage() {
             New Invoice
           </motion.button>
         </header>
+
+        {paymentReturn && paymentReturn.status !== "idle" && (
+          <section
+            role="status"
+            className={`rounded-2xl border p-5 ${paymentReturn.status === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100" : paymentReturn.status === "canceled" || paymentReturn.status === "error" ? "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100" : "border-blue-200 bg-blue-50 text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100"}`}
+          >
+            {paymentReturn.status === "checking" && (
+              <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin" /><div><h2 className="font-semibold">Confirming your payment…</h2><p className="mt-1 text-sm opacity-80">This can take a few seconds. Please keep this page open.</p></div></div>
+            )}
+            {paymentReturn.status === "success" && (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3"><CheckCircle className="mt-0.5 h-5 w-5 shrink-0" /><div><h2 className="font-semibold">Payment received</h2><p className="mt-1 text-sm opacity-80">Invoice {paymentReturn.receipt.invoice.invoice_number} is paid. Your receipt is ready to download.</p></div></div>
+                <Suspense fallback={<span className="text-sm">Preparing receipt tools…</span>}>
+                  <PDFDownloadLink
+                    document={<PaymentReceiptPDF receipt={paymentReturn.receipt} />}
+                    fileName={`receipt-${paymentReturn.receipt.invoice.invoice_number}.pdf`}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 font-medium text-white hover:bg-emerald-800"
+                  >
+                    {({ loading: pdfLoading }) => <><Download className="h-4 w-4" />{pdfLoading ? "Preparing receipt…" : "Download receipt"}</>}
+                  </PDFDownloadLink>
+                </Suspense>
+              </div>
+            )}
+            {(paymentReturn.status === "canceled" || paymentReturn.status === "failed") && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">{paymentReturn.status === "failed" ? "Payment wasn’t completed" : "Checkout was canceled"}</h2><p className="mt-1 text-sm opacity-80">{paymentReturn.status === "failed" ? "The payment could not be confirmed. Check your payment details and try again." : "No payment was completed. You can try again whenever you’re ready."}</p></div>{invoices.find((invoice) => invoice.id === paymentReturn.invoiceId) && <button onClick={() => handlePay(invoices.find((invoice) => invoice.id === paymentReturn.invoiceId))} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-700 px-4 py-2.5 font-medium text-white hover:bg-amber-800"><CreditCard className="h-4 w-4" />Try payment again</button>}</div>
+            )}
+            {paymentReturn.status === "error" && (
+              <div><h2 className="font-semibold">We couldn’t confirm the payment yet</h2><p className="mt-1 text-sm opacity-80">Your payment may still be processing. Check your Payments page before trying again, or refresh this page in a moment.</p></div>
+            )}
+          </section>
+        )}
 
         {/* ERROR */}
         <AnimatePresence>
@@ -456,6 +560,7 @@ export default function InvoicesPage() {
             onClose={() => setSelectedInvoice(null)}
             onPay={handlePay}
             StatusBadge={StatusBadge}
+            receipt={paymentReturn?.status === "success" && paymentReturn.invoiceId === selectedInvoice.id ? paymentReturn.receipt : null}
           />
         )}
       </AnimatePresence>
@@ -701,7 +806,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
 // ------------------------------------------------------------------
 // VIEW INVOICE MODAL
 // ------------------------------------------------------------------
-function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge }) {
+function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge, receipt }) {
   const total =
     invoice.invoice_items
       ?.reduce((s, i) => s + (i.total || i.quantity * i.unit_price), 0)
@@ -836,8 +941,73 @@ function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge }) {
               <CreditCard className="w-5 h-5" /> Pay Now
             </button>
           )}
+          {invoice.status === "paid" && (
+            <InvoiceReceiptDownload invoice={invoice} verifiedReceipt={receipt} />
+          )}
         </div>
       </motion.div>
     </div>
+  );
+}
+
+function InvoiceReceiptDownload({ invoice, verifiedReceipt }) {
+  const [receipt, setReceipt] = useState(verifiedReceipt || null);
+  const [loading, setLoading] = useState(!verifiedReceipt);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (verifiedReceipt) {
+      setReceipt(verifiedReceipt);
+      setLoading(false);
+      setError(false);
+      return undefined;
+    }
+
+    let active = true;
+    const loadReceipt = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/payments/invoice/${invoice.id}`,
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } },
+        );
+        const payment = data.payment;
+        if (active) {
+          setReceipt({
+            invoice,
+            amount_paid: Number(payment.amount),
+            currency: (payment.currency || "USD").toUpperCase(),
+            paid_at: payment.paid_at,
+            payment_reference: payment.stripe_payment_id || payment.id,
+          });
+        }
+      } catch {
+        if (active) setError(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    loadReceipt();
+    return () => { active = false; };
+  }, [invoice, verifiedReceipt]);
+
+  if (loading) {
+    return <span className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-medium text-white"><Loader2 className="h-4 w-4 animate-spin" />Loading receipt</span>;
+  }
+  if (error || !receipt) {
+    return <span className="flex flex-1 items-center justify-center text-center text-sm text-amber-700 dark:text-amber-300">Receipt unavailable</span>;
+  }
+
+  return (
+    <Suspense fallback={<span className="flex flex-1 items-center justify-center text-sm">Preparing receipt…</span>}>
+      <PDFDownloadLink
+        document={<PaymentReceiptPDF receipt={receipt} />}
+        fileName={`receipt-${invoice.invoice_number}.pdf`}
+        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 font-medium text-white shadow-lg transition hover:bg-emerald-800 active:scale-95"
+      >
+        {({ loading: pdfLoading }) => <><Download className="h-5 w-5" />{pdfLoading ? "Preparing receipt…" : "Download receipt"}</>}
+      </PDFDownloadLink>
+    </Suspense>
   );
 }
