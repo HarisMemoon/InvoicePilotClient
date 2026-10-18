@@ -4,19 +4,8 @@ import axios from "axios";
 import { CreditCard, X, Receipt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe("your-publishable-key-here"); // From Stripe dashboard
-
-function CheckoutForm({ invoice, onSuccess }) {
-  const stripe = useStripe();
-  const elements = useElements();
+function CheckoutForm({ invoice }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,33 +13,17 @@ function CheckoutForm({ invoice, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      // Create PaymentIntent on backend
-      const {
-        data: { clientSecret },
-      } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/stripe/create-payment-intent`,
-        {
-          invoiceId: invoice.id,
-          amount: invoice.total_amount * 100, // Cents
-        },
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/stripe/create-checkout-session`,
+        { invoice_id: invoice.id },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
-
-      const { error: stripeError } = await stripe.confirmCardPayment(
-        clientSecret,
-        {
-          payment_method: { card: elements.getElement(CardElement) },
-        },
-      );
-
-      if (stripeError) throw new Error(stripeError.message);
-
-      toast.success("Payment successful!");
-      onSuccess();
+      if (!data?.url) throw new Error("Stripe did not return a checkout URL");
+      window.location.assign(data.url);
     } catch (err) {
-      setError(err.message || "Payment failed");
+      setError(err.response?.data?.error || err.message || "Payment failed");
     } finally {
       setLoading(false);
     }
@@ -58,11 +31,13 @@ function CheckoutForm({ invoice, onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <CardElement className="p-3 border rounded-lg" />
+      <p className="text-sm text-gray-600 dark:text-gray-300">
+        Continue to Stripe's secure checkout to enter payment details.
+      </p>
       {error && <p className="text-red-500">{error}</p>}
       <button
         type="submit"
-        disabled={!stripe || loading}
+        disabled={loading}
         className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
       >
         {loading ? "Processing..." : `Pay $${invoice.total_amount}`}
@@ -133,7 +108,6 @@ export default function PaymentsPage() {
   if (!user) return null;
 
   return (
-    <Elements stripe={stripePromise}>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Payments</h1>
@@ -276,10 +250,6 @@ export default function PaymentsPage() {
                   <div className="mt-2">
                     <CheckoutForm
                       invoice={selectedInvoice}
-                      onSuccess={() => {
-                        setSelectedInvoice(null);
-                        // Refetch payments
-                      }}
                     />
                   </div>
                 </div>
@@ -288,6 +258,5 @@ export default function PaymentsPage() {
           )}
         </AnimatePresence>
       </div>
-    </Elements>
   );
 }

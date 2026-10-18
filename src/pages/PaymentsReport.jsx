@@ -15,7 +15,6 @@ import {
   Clock,
   FileText,
   CalendarDays,
-  ChevronDown,
   Filter,
 } from "lucide-react";
 import {
@@ -36,6 +35,7 @@ import { useDebounce } from "react-use";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import PaymentsPDF from "../components/PaymentsPDF";
 import FilterSelect from "../components/FilterSelect"; // <-- Imported new component
+import DashboardPageLoader from "../components/DashboardPageLoader";
 
 const DATE_RANGES = [
   { label: "Last 30 days", value: 30 },
@@ -71,7 +71,6 @@ export default function PaymentsReport() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState(30);
   const [user, setUser] = useState(null);
-  const [showDateMenu, setShowDateMenu] = useState(false);
 
   const navigate = useNavigate();
 
@@ -193,15 +192,7 @@ export default function PaymentsReport() {
 
   // ── UI ──────────────────────────────────────────
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full"
-        />
-      </div>
-    );
+    return <DashboardPageLoader message="Loading payment report..." />;
   }
 
   return (
@@ -223,7 +214,7 @@ export default function PaymentsReport() {
         </div>
 
         <div className="flex gap-3">
-          <PDFDownloadLink
+          {/* <PDFDownloadLink
             document={<PaymentsPDF data={filtered} total={totalRevenue} />}
             fileName={`payments-${format(new Date(), "yyyy-MM-dd")}.pdf`}
           >
@@ -233,7 +224,7 @@ export default function PaymentsReport() {
                 {loading ? "Preparing..." : "Export PDF"}
               </button>
             )}
-          </PDFDownloadLink>
+          </PDFDownloadLink> */}
 
           <button
             onClick={exportCSV}
@@ -302,58 +293,16 @@ export default function PaymentsReport() {
           icon={Filter}
         />
 
-        <div className="relative">
-          <button
-            onClick={() => setShowDateMenu(!showDateMenu)}
-            className={`w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none transition-all shadow-sm ${
-              showDateMenu
-                ? "ring-2 ring-emerald-500 border-transparent"
-                : "hover:border-emerald-500/50"
-            }`}
-          >
-            <span className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-              <CalendarDays className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
-              {DATE_RANGES.find((r) => r.value === dateRange)?.label ||
-                "Custom"}
-            </span>
-            <ChevronDown
-              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-                showDateMenu ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          <AnimatePresence>
-            {showDateMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scaleY: 0.95 }}
-                animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                exit={{ opacity: 0, y: -10, scaleY: 0.95 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden origin-top"
-              >
-                <div className="py-1">
-                  {DATE_RANGES.map((range) => (
-                    <button
-                      key={range.value}
-                      onClick={() => {
-                        setDateRange(range.value);
-                        setShowDateMenu(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors ${
-                        dateRange === range.value
-                          ? "bg-emerald-50 text-emerald-700 font-bold dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                      }`}
-                    >
-                      {range.label}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <FilterSelect
+          value={dateRange}
+          onChange={setDateRange}
+          options={DATE_RANGES.map((range) => ({
+            label: range.label,
+            value: range.value,
+          }))}
+          placeholder="Date range"
+          icon={CalendarDays}
+        />
       </div>
 
       {/* CHARTS */}

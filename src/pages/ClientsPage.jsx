@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import DashboardPageLoader from "../components/DashboardPageLoader";
 import { toast } from "react-hot-toast";
 import {
   Users,
@@ -229,9 +230,7 @@ export default function ClientsPage() {
         {/* TABLE */}
         <section className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           {loading ? (
-            <div className="p-16 text-center">
-              <Loader2 className="w-10 h-10 mx-auto animate-spin text-purple-600" />
-            </div>
+            <DashboardPageLoader message="Loading clients..." className="min-h-[240px]" />
           ) : filtered.length === 0 ? (
             <div className="p-16 text-center">
               <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -10,20 +10,31 @@ export default function FilterSelect({
   placeholder = "Select option",
   icon: Icon = Filter,
   className = "",
+  disabled = false,
+  ariaLabel,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
+    if (!isOpen) return undefined;
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -31,11 +42,17 @@ export default function FilterSelect({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none transition-all shadow-sm ${
           isOpen
             ? "ring-2 ring-emerald-500 border-transparent"
             : "hover:border-emerald-500/50"
+        } ${
+          disabled ? "opacity-60 cursor-not-allowed" : ""
         }`}
       >
         <span className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
@@ -59,12 +76,15 @@ export default function FilterSelect({
             exit={{ opacity: 0, y: -10, scaleY: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
             className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden origin-top"
+            role="listbox"
           >
             <div className="max-h-60 overflow-y-auto custom-scrollbar py-1">
               {options.map((option) => (
                 <button
-                  key={option.value}
+                  key={option.value ?? "all-time"}
                   type="button"
+                  role="option"
+                  aria-selected={value === option.value}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);

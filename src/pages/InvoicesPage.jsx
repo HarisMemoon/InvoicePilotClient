@@ -22,6 +22,8 @@ import {
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import FilterSelect from "../components/FilterSelect";
+import DateInput from "../components/DateInput";
+import DashboardPageLoader from "../components/DashboardPageLoader";
 
 const INVOICE_STATUS_OPTIONS = [
   { label: "All Status", value: "all" },
@@ -43,6 +45,36 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [invoiceDetailLoading, setInvoiceDetailLoading] = useState(false);
+  const selectedInvoiceHasDetails = Boolean(selectedInvoice?.invoice_items);
+
+  useEffect(() => {
+    const invoiceId = selectedInvoice?.id;
+    if (!invoiceId || selectedInvoiceHasDetails) return undefined;
+
+    let isCurrent = true;
+    setInvoiceDetailLoading(true);
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then(({ data }) => {
+        if (isCurrent) setSelectedInvoice(data.invoice);
+      })
+      .catch((err) => {
+        if (isCurrent) {
+          toast.error(err.response?.data?.error || "Failed to load invoice details");
+          setSelectedInvoice(null);
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setInvoiceDetailLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedInvoice?.id, selectedInvoiceHasDetails]);
 
   // 2. AUTH CHECK
   useEffect(() => {
@@ -73,10 +105,7 @@ export default function InvoicesPage() {
             },
           },
         );
-        const sorted = (data.invoices || []).sort(
-          (a, b) => new Date(b.created_at) - new Date(a.created_at),
-        );
-        setInvoices(sorted);
+        setInvoices(data.invoices || []);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load invoices");
         toast.error("Failed to load invoices");
@@ -98,7 +127,7 @@ export default function InvoicesPage() {
           statusFilter === "all" || i.status === statusFilter;
         return matchesSearch && matchesStatus;
       })
-      .sort((a, b) => new Date(b.issue_date) - new Date(a.issue_date));
+      .sort((a, b) => Date.parse(b.issue_date) - Date.parse(a.issue_date));
   }, [invoices, search, statusFilter]);
 
   // 5. STATS
@@ -178,6 +207,11 @@ export default function InvoicesPage() {
       toast.error(err.response?.data?.error || "Failed to start payment");
     }
   }, []);
+
+  const openInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
+    setInvoiceDetailLoading(!invoice.invoice_items);
+  };
 
   const handleCreateSuccess = useCallback((newInvoice) => {
     setInvoices((prev) => [newInvoice, ...prev]);
@@ -315,9 +349,7 @@ export default function InvoicesPage() {
         {/* TABLE */}
         <section className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           {loading ? (
-            <div className="p-16 text-center">
-              <Loader2 className="w-10 h-10 mx-auto animate-spin text-blue-600 dark:text-blue-400" />
-            </div>
+            <DashboardPageLoader message="Loading invoices..." className="min-h-[240px]" />
           ) : filtered.length === 0 ? (
             <div className="p-16 text-center">
               <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -344,20 +376,15 @@ export default function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                  <AnimatePresence>
                     {filtered.map((inv) => {
                       const isOverdue =
                         inv.status !== "paid" &&
                         new Date(inv.due_date) < new Date();
                       return (
-                        <motion.tr
-                          layout
+                        <tr
                           key={inv.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
                           className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer group"
-                          onClick={() => setSelectedInvoice(inv)}
+                          onClick={() => openInvoice(inv)}
                         >
                           <td className="px-6 py-4 font-medium text-blue-700 dark:text-blue-400">
                             {inv.invoice_number}
@@ -382,7 +409,7 @@ export default function InvoicesPage() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedInvoice(inv);
+                                  openInvoice(inv);
                                 }}
                                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
                                 title="View"
@@ -401,10 +428,9 @@ export default function InvoicesPage() {
                               </button>
                             </div>
                           </td>
-                        </motion.tr>
+                        </tr>
                       );
                     })}
-                  </AnimatePresence>
                 </tbody>
               </table>
             </div>
@@ -426,6 +452,7 @@ export default function InvoicesPage() {
         {selectedInvoice && (
           <InvoiceViewModal
             invoice={selectedInvoice}
+              loading={invoiceDetailLoading || !selectedInvoice.invoice_items}
             onClose={() => setSelectedInvoice(null)}
             onPay={handlePay}
             StatusBadge={StatusBadge}
@@ -478,6 +505,10 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.client_id) {
+      toast.error("Please select a client");
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
@@ -537,46 +568,36 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Client
               </label>
-              <select
-                required
+              <FilterSelect
                 value={form.client_id}
-                onChange={(e) =>
-                  setForm({ ...form, client_id: e.target.value })
-                }
-                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700/50 outline-none"
-              >
-                <option value="">Select client...</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(client_id) => setForm((current) => ({ ...current, client_id }))}
+                options={[
+                  { value: "", label: "Select client..." },
+                  ...clients.map((client) => ({ value: client.id, label: client.name })),
+                ]}
+                placeholder="Select client..."
+                icon={Users}
+                className="mt-1"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Issue Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 required
                 value={form.issue_date}
-                onChange={(e) =>
-                  setForm({ ...form, issue_date: e.target.value })
-                }
-                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700/50 outline-none"
+                onChange={(e) => setForm((current) => ({ ...current, issue_date: e.target.value }))}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Due Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 required
                 value={form.due_date}
-                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700/50 outline-none"
+                onChange={(e) => setForm((current) => ({ ...current, due_date: e.target.value }))}
               />
             </div>
           </div>
@@ -680,11 +701,11 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
 // ------------------------------------------------------------------
 // VIEW INVOICE MODAL
 // ------------------------------------------------------------------
-function InvoiceViewModal({ invoice, onClose, onPay, StatusBadge }) {
+function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge }) {
   const total =
     invoice.invoice_items
       ?.reduce((s, i) => s + (i.total || i.quantity * i.unit_price), 0)
-      .toFixed(2) || "0.00";
+      .toFixed(2) || Number(invoice.total_amount || 0).toFixed(2);
   const isOverdue =
     invoice.status !== "paid" && new Date(invoice.due_date) < new Date();
 
@@ -772,8 +793,11 @@ function InvoiceViewModal({ invoice, onClose, onPay, StatusBadge }) {
             <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
               Line Items
             </h3>
-            <div className="space-y-3">
-              {invoice.invoice_items?.map((it, i) => (
+            {loading ? (
+              <DashboardPageLoader message="Loading invoice details..." className="min-h-[180px]" />
+            ) : (
+              <div className="space-y-3">
+                {invoice.invoice_items?.map((it, i) => (
                 <div
                   key={i}
                   className="flex justify-between items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-xl shadow-sm"
@@ -790,8 +814,9 @@ function InvoiceViewModal({ invoice, onClose, onPay, StatusBadge }) {
                     ${(it.total || it.quantity * it.unit_price).toFixed(2)}
                   </span>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -805,6 +830,7 @@ function InvoiceViewModal({ invoice, onClose, onPay, StatusBadge }) {
           {invoice.status !== "paid" && (
             <button
               onClick={() => onPay(invoice)}
+              disabled={loading}
               className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white rounded-xl font-medium flex items-center justify-center gap-2 shadow-lg active:scale-95 transition"
             >
               <CreditCard className="w-5 h-5" /> Pay Now

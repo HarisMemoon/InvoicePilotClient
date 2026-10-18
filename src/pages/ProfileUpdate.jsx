@@ -15,6 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import FilterSelect from "../components/FilterSelect";
+import DashboardPageLoader from "../components/DashboardPageLoader";
 
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api/user/profile`;
 
@@ -166,16 +168,7 @@ export default function ProfileUpdate() {
   };
 
   if (loading.fetch) {
-    return (
-      <div className="flex justify-center items-center h-[60vh]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-          <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
-            Loading profile...
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardPageLoader message="Loading profile..." />;
   }
 
   return (
@@ -342,21 +335,18 @@ export default function ProfileUpdate() {
                     <ShieldCheck className="w-4 h-4 text-gray-400" />
                     Account Role
                   </label>
-                  <select
-                    name="role"
+                  <FilterSelect
                     value={formData.role}
-                    onChange={handleChange}
+                    onChange={(role) => setFormData((current) => ({ ...current, role }))}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm appearance-none ${
-                      isEditing
-                        ? "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-gray-900 dark:text-white cursor-pointer"
-                        : "bg-gray-50 dark:bg-white/5 border-transparent text-gray-700 dark:text-gray-300 cursor-not-allowed"
-                    } outline-none capitalize`}
-                  >
-                    <option value="user">User</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                    options={[
+                      { value: "user", label: "User" },
+                      { value: "manager", label: "Manager" },
+                      { value: "admin", label: "Admin" },
+                    ]}
+                    icon={ShieldCheck}
+                    className="capitalize"
+                  />
                 </div>
               </div>
 

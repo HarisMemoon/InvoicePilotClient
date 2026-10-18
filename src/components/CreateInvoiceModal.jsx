@@ -1,9 +1,10 @@
 // src/components/CreateInvoiceModal.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Minus, X } from "lucide-react";
+import { Plus, Minus, X, Users } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ModalWrapper from "./ModalWrapper";
+import FilterSelect from "./FilterSelect";
 
 export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
   const [clients, setClients] = useState([]);
@@ -108,21 +109,17 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
           <label className="block text-sm font-medium text-gray-700">
             Client
           </label>
-          <select
-            name="client_id"
+          <FilterSelect
             value={formData.client_id}
-            onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-              errors.client_id ? "border-red-500" : ""
-            }`}
-          >
-            <option value="">-- select --</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={(client_id) => setFormData((current) => ({ ...current, client_id }))}
+            options={[
+              { value: "", label: "-- select --" },
+              ...clients.map((client) => ({ value: client.id, label: client.name })),
+            ]}
+            placeholder="Select a client"
+            icon={Users}
+            className="mt-1"
+          />
           {errors.client_id && (
             <p className="mt-1 text-xs text-red-600">{errors.client_id}</p>
           )}

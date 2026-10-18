@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import DashboardPageLoader from "../components/DashboardPageLoader";
 import {
   FileText,
   Users,
@@ -14,7 +15,6 @@ import {
   Shield,
   FileCheck,
   BarChart3,
-  Loader2,
   ArrowUpRight,
   X,
 } from "lucide-react";
@@ -166,6 +166,7 @@ export default function DashboardHome() {
 
   const recentInvoices = useMemo(() => {
     return invoices
+      .slice()
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 5);
   }, [invoices]);
@@ -176,11 +177,7 @@ export default function DashboardHome() {
   // 7. UI
   // ------------------------------------------------------------------
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen ">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600 dark:text-blue-400" />
-      </div>
-    );
+    return <DashboardPageLoader message="Loading your dashboard..." />;
   }
 
   if (error) {
