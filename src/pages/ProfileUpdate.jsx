@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import FilterSelect from "../components/FilterSelect";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import PageHeader from "../components/PageHeader";
 
 const API_BASE_URL = `/api/user/profile`;
 
@@ -172,16 +173,14 @@ export default function ProfileUpdate() {
   }
 
   return (
-    <div className="w-full p-4 max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="mx-auto w-full max-w-6xl p-6 pt-24">
       {/* HEADER */}
-      <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight">
-          Account Settings
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1.5 text-sm sm:text-base">
-          Manage your profile information and account details.
-        </p>
-      </div>
+      <PageHeader
+        title="Account Settings"
+        description="Manage your profile information and account details."
+        icon={User}
+        className="mb-8 md:mb-12"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* LEFT COLUMN: IDENTITY CARD */}

@@ -36,6 +36,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import PaymentsPDF from "../components/PaymentsPDF";
 import FilterSelect from "../components/FilterSelect"; // <-- Imported new component
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import PageHeader from "../components/PageHeader";
 
 const DATE_RANGES = [
   { label: "Last 30 days", value: 30 },
@@ -196,24 +197,14 @@ export default function PaymentsReport() {
   }
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 px-6 pb-10 pt-24">
       {/* HEADER */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
-      >
-        <div>
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent flex items-center gap-3">
-            <DollarSign className="w-10 h-10 text-emerald-600" />
-            Payments Report
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-            Real-time revenue analytics & payment tracking
-          </p>
-        </div>
-
-        <div className="flex gap-3">
+      <PageHeader
+        title="Payments Report"
+        description="Real-time revenue analytics and payment tracking."
+        icon={DollarSign}
+        action={
+          <div className="flex gap-3">
           {/* <PDFDownloadLink
             document={<PaymentsPDF data={filtered} total={totalRevenue} />}
             fileName={`payments-${format(new Date(), "yyyy-MM-dd")}.pdf`}
@@ -233,8 +224,9 @@ export default function PaymentsReport() {
             <Download className="w-4 h-4" />
             Export CSV
           </button>
-        </div>
-      </motion.header>
+          </div>
+        }
+      />
 
       {/* SUMMARY CARD */}
       <motion.div

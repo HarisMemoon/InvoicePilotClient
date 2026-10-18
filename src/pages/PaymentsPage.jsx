@@ -5,6 +5,7 @@ import { CreditCard, X, Receipt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import useModalScrollLock from "../hooks/useModalScrollLock";
+import PageHeader from "../components/PageHeader";
 
 function CheckoutForm({ invoice }) {
   const [loading, setLoading] = useState(false);
@@ -112,7 +113,12 @@ export default function PaymentsPage() {
   return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Payments</h1>
+          <PageHeader
+            title="Payments"
+            description="Review payment activity and receipts."
+            icon={CreditCard}
+            className="mb-8"
+          />
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">

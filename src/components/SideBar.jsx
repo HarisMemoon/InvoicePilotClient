@@ -9,6 +9,7 @@ import {
   Menu,
   LayoutDashboard,
   MoreVertical,
+  X,
   Sun,
   Moon,
   UserCircle,
@@ -24,6 +25,9 @@ export default function Sidebar() {
   const location = useLocation();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 1024,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ left: 0, bottom: 0 });
@@ -53,11 +57,12 @@ export default function Sidebar() {
   // ── Responsive Sidebar ──
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
         setMobileOpen(true);
       } else {
         setMobileOpen(false);
-        setCollapsed(true);
       }
     };
     handleResize();
@@ -65,14 +70,19 @@ export default function Sidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const sidebarWidth = collapsed ? 72 : 260;
+  const isCollapsed = collapsed && !isMobile;
+  const sidebarWidth = isMobile
+    ? Math.min(320, window.innerWidth - 48)
+    : isCollapsed
+      ? 72
+      : 260;
 
   // ── Menu Toggle & Position ──
   const handleMenuToggle = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMenuPosition({
       // If collapsed, open to the right. If open, align right edge of menu (224px wide) with right edge of button
-      left: collapsed ? rect.right + 16 : rect.right - 224,
+      left: isCollapsed ? rect.right + 16 : rect.right - 224,
       // Place right above the button
       bottom: window.innerHeight - rect.top + 10,
     });
@@ -103,8 +113,21 @@ export default function Sidebar() {
         onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 right-4 z-50 p-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg lg:hidden"
       >
-        <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+        {mobileOpen ? (
+          <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+        ) : (
+          <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+        )}
       </button>
+
+      {isMobile && mobileOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-30 bg-gray-950/45 lg:hidden"
+        />
+      )}
 
       {/* ── SIDEBAR ── */}
       <motion.aside
@@ -120,7 +143,7 @@ export default function Sidebar() {
         {/* ── HEADER ── */}
         <div
           className={`flex items-center justify-between w-full px-5 py-4 border-b border-gray-100 dark:border-gray-800 ${
-            collapsed ? "flex-col gap-2" : "flex-row gap-3"
+          isCollapsed ? "flex-col gap-2" : "flex-row gap-3"
           } transition-all duration-300`}
         >
           {/* Logo */}
@@ -132,7 +155,7 @@ export default function Sidebar() {
             </div>
 
             <AnimatePresence>
-              {!collapsed && (
+              {!isCollapsed && (
                 <motion.div
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
@@ -154,7 +177,7 @@ export default function Sidebar() {
           <motion.button
             onClick={() => setCollapsed(!collapsed)}
             className={`p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition-all hidden lg:flex ${
-              collapsed ? "mt-2 self-center" : "ml-auto mr-2"
+            isCollapsed ? "mt-2 self-center" : "ml-auto mr-2"
             }`}
             whileTap={{ scale: 0.95 }}
           >
@@ -185,7 +208,7 @@ export default function Sidebar() {
                   active
                     ? "text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20"
                     : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                } ${collapsed ? "justify-center" : ""}`}
+                } ${isCollapsed ? "justify-center" : ""}`}
               >
                 <Icon
                   className={`w-5 h-5 ${
@@ -195,7 +218,7 @@ export default function Sidebar() {
                   }`}
                 />
                 <AnimatePresence>
-                  {!collapsed && (
+                  {!isCollapsed && (
                     <motion.span
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -215,7 +238,7 @@ export default function Sidebar() {
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 relative">
           <div
             className={`flex items-center transition-all duration-300 ${
-              collapsed
+              isCollapsed
                 ? "flex-col justify-center gap-2"
                 : "justify-between gap-3"
             }`}
@@ -223,7 +246,7 @@ export default function Sidebar() {
             {/* PROFILE IMAGE */}
             <div
               className={`relative ${
-                collapsed ? "w-12 h-12" : "w-10 h-10"
+                isCollapsed ? "w-12 h-12" : "w-10 h-10"
               } rounded-full overflow-hidden shadow-lg shrink-0`}
             >
 
@@ -248,7 +271,7 @@ export default function Sidebar() {
 
             {/* USER INFO */}
             <AnimatePresence>
-              {!collapsed && (
+              {!isCollapsed && (
                 <motion.div
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
@@ -272,7 +295,7 @@ export default function Sidebar() {
 
             {/* MENU BUTTON */}
             <div
-              className={`flex items-center gap-1 ${collapsed ? "flex-col" : "ml-auto"}`}
+              className={`flex items-center gap-1 ${isCollapsed ? "flex-col" : "ml-auto"}`}
             >
               {/* THEME TOGGLE ICON */}
               <motion.button
@@ -350,13 +373,6 @@ export default function Sidebar() {
         document.body,
       )}
 
-      {/* ── MOBILE OVERLAY ── */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
     </>
   );
 }

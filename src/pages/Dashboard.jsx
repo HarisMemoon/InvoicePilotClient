@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import PageHeader from "../components/PageHeader";
 import {
   FileText,
   Users,
@@ -15,6 +16,7 @@ import {
   Shield,
   FileCheck,
   BarChart3,
+  LayoutDashboard,
   ArrowUpRight,
   X,
 } from "lucide-react";
@@ -195,28 +197,14 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="min-h-screen  font-inter p-4 sm:p-6 lg:p-8 pt-24 lg:pt-8">
+    <div className="min-h-screen font-inter p-4 sm:p-6 lg:p-8 pt-24 lg:pt-24">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* HEADER */}
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-4"
-        >
-          <div className="space-y-1">
-            <h1 className="text-3xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome back,{" "}
-              <span className="text-black dark:text-white">
-                {user?.full_name?.charAt(0)?.toUpperCase() +
-                  user?.full_name?.slice(1) ||
-                  user?.email?.split("@")[0].charAt(0).toUpperCase() +
-                    user?.email?.split("@")[0].slice(1)}
-              </span>
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
-              Here’s what’s happening with your business today.
-            </p>
-          </div>
+        <PageHeader
+          title="Dashboard"
+          description={`Welcome back, ${user?.full_name || user?.email?.split("@")[0] || "there"}. Here’s what’s happening with your business today.`}
+          icon={LayoutDashboard}
+          action={
           <Link
             to="/dashboard/invoices"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/20 shrink-0"
@@ -224,7 +212,8 @@ export default function DashboardHome() {
             <FileText className="w-5 h-5" />
             Create Invoice
           </Link>
-        </motion.header>
+          }
+        />
 
         {/* OVERDUE ALERT */}
         <AnimatePresence>

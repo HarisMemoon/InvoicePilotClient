@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import FilterSelect from "../components/FilterSelect";
 import DateInput from "../components/DateInput";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import PageHeader from "../components/PageHeader";
 import useModalScrollLock from "../hooks/useModalScrollLock";
 import { getInvoiceItemErrors, toInvoiceItemsPayload } from "../utils/invoiceForm.js";
 
@@ -333,16 +334,11 @@ export default function InvoicesPage() {
     <div className="h-full space-y-8 pb-12">
       <div className="max-w-7xl mx-auto p-6 pt-24 space-y-8">
         {/* HEADER */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <FileText className="w-9 h-9 text-blue-600 dark:text-blue-400" />
-              Invoices
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Create, view and manage all invoices.
-            </p>
-          </div>
+        <PageHeader
+          title="Invoices"
+          description="Create, view and manage all invoices."
+          icon={FileText}
+          action={
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -352,7 +348,8 @@ export default function InvoicesPage() {
             <Plus className="w-5 h-5" />
             New Invoice
           </motion.button>
-        </header>
+          }
+        />
 
         {paymentReturn && paymentReturn.status !== "idle" && (
           <section
@@ -655,7 +652,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 custom-scrollbar"
+        className="box-border min-w-0 w-full max-w-3xl overflow-x-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar"
       >
         <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -669,7 +666,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="min-w-0 w-full space-y-6">
           <div className="grid min-w-0 grid-cols-1 md:grid-cols-3 gap-6">
             <div className="min-w-0 md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">

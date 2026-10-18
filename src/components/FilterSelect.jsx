@@ -39,7 +39,7 @@ export default function FilterSelect({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative w-full min-w-0 ${className}`} ref={dropdownRef}>
       <button
         type="button"
         aria-label={ariaLabel}

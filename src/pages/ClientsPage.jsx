@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import PageHeader from "../components/PageHeader";
 import { toast } from "react-hot-toast";
 import {
   Users,
@@ -149,16 +150,11 @@ export default function ClientsPage() {
     <div className="h-full space-y-8 pb-12">
       <div className="max-w-7xl mx-auto p-6 pt-24 space-y-8">
         {/* HEADER */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Users className="w-9 h-9 text-purple-600 dark:text-purple-400" />
-              Clients
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage all your clients in one place.
-            </p>
-          </div>
+        <PageHeader
+          title="Clients"
+          description="Manage all your clients in one place."
+          icon={Users}
+          action={
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -168,7 +164,8 @@ export default function ClientsPage() {
             <Plus className="w-5 h-5" />
             New Client
           </motion.button>
-        </header>
+          }
+        />
 
         {/* ERROR */}
         <AnimatePresence>
