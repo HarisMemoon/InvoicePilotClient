@@ -1,5 +1,5 @@
 // src/pages/InvoicesPage.jsx
-import { lazy, Suspense, useEffect, useState, useMemo, useCallback } from "react";
+import { lazy, Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api";
 import { toast } from "react-hot-toast";
@@ -25,6 +25,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import FilterSelect from "../components/FilterSelect";
 import DateInput from "../components/DateInput";
 import DashboardPageLoader from "../components/DashboardPageLoader";
+import useModalScrollLock from "../hooks/useModalScrollLock";
+import { getInvoiceItemErrors, toInvoiceItemsPayload } from "../utils/invoiceForm.js";
 
 const PDFDownloadLink = lazy(() =>
   import("@react-pdf/renderer").then((module) => ({ default: module.PDFDownloadLink })),
@@ -569,6 +571,8 @@ export default function InvoicesPage() {
 // CREATE INVOICE FORM
 // ------------------------------------------------------------------
 function CreateInvoiceForm({ onClose, onSuccess }) {
+  const modalRef = useRef(null);
+  useModalScrollLock(true, modalRef);
   const [form, setForm] = useState({
     client_id: "",
     issue_date: new Date().toISOString().split("T")[0],
@@ -611,15 +615,15 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
       toast.error("Please select a client");
       return;
     }
+    if (getInvoiceItemErrors(form.items).some((item) => Object.values(item).some(Boolean))) {
+      toast.error("Enter a description, quantity, and valid price for each item");
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
         ...form,
-        invoice_items: form.items.map((it) => ({
-          description: it.description,
-          quantity: Number(it.quantity),
-          unit_price: Number(it.unit_price),
-        })),
+        invoice_items: toInvoiceItemsPayload(form.items),
       };
 
       const { data } = await api.post(
@@ -639,10 +643,11 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
 
   return (
     <motion.div
+      ref={modalRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
+      className="modal-scroll-lock fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -665,8 +670,8 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
+          <div className="grid min-w-0 grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="min-w-0 md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Client
               </label>
@@ -682,7 +687,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
                 className="mt-1"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Issue Date
               </label>
@@ -692,7 +697,7 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
                 onChange={(e) => setForm((current) => ({ ...current, issue_date: e.target.value }))}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Due Date
               </label>
@@ -805,6 +810,8 @@ function CreateInvoiceForm({ onClose, onSuccess }) {
 // VIEW INVOICE MODAL
 // ------------------------------------------------------------------
 function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge, receipt }) {
+  const modalRef = useRef(null);
+  useModalScrollLock(true, modalRef);
   const total =
     invoice.invoice_items
       ?.reduce((s, i) => s + (i.total || i.quantity * i.unit_price), 0)
@@ -813,7 +820,7 @@ function InvoiceViewModal({ invoice, loading, onClose, onPay, StatusBadge, recei
     invoice.status !== "paid" && new Date(invoice.due_date) < new Date();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-inter">
+    <div ref={modalRef} className="modal-scroll-lock fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-inter">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

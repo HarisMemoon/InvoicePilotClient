@@ -4,6 +4,7 @@ import api from "../api";
 import { CreditCard, X, Receipt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import useModalScrollLock from "../hooks/useModalScrollLock";
 
 function CheckoutForm({ invoice }) {
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  useModalScrollLock(Boolean(selectedInvoice));
 
   // Auth Check
   useEffect(() => {
@@ -198,7 +200,7 @@ export default function PaymentsPage() {
         {/* Payment Modal for Selected Invoice */}
         <AnimatePresence>
           {selectedInvoice && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-inter">
+            <div className="modal-scroll-lock fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-inter">
               {/* Blurred Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -214,7 +216,7 @@ export default function PaymentsPage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
+                className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">

@@ -60,7 +60,30 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 @layer base {
-  /* Keep your other base styles here if you have any */
+  .dark button {
+    color: #fff !important;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]),
+  .dark textarea,
+  .dark select,
+  .dark [contenteditable="true"] {
+    color: #fff !important;
+    color-scheme: dark;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]),
+  .dark textarea,
+  .dark select {
+    border-color: #4b5563;
+    background-color: #1f2937;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+  }
 }
 
 @keyframes blob {

@@ -5,6 +5,7 @@ import { Plus, Minus, X, Users } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ModalWrapper from "./ModalWrapper";
 import FilterSelect from "./FilterSelect";
+import { getInvoiceItemErrors, toInvoiceItemsPayload } from "../utils/invoiceForm.js";
 
 export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
   const [clients, setClients] = useState([]);
@@ -72,10 +73,10 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     if (!formData.client_id) e.client_id = "Select a client";
     if (!formData.invoice_number) e.invoice_number = "Required";
     if (!formData.due_date) e.due_date = "Required";
-    formData.items.forEach((it, i) => {
-      if (!it.description) e[`d${i}`] = "Description required";
-      if (Number(it.quantity) <= 0) e[`q${i}`] = "Quantity must be greater than 0";
-      if (it.unit_price === "" || Number(it.unit_price) < 0) e[`p${i}`] = "Enter a valid price";
+    getInvoiceItemErrors(formData.items).forEach((itemErrors, i) => {
+      if (itemErrors.description) e[`d${i}`] = itemErrors.description;
+      if (itemErrors.quantity) e[`q${i}`] = itemErrors.quantity;
+      if (itemErrors.unit_price) e[`p${i}`] = itemErrors.unit_price;
     });
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -87,11 +88,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
     try {
       await api.post(`/api/invoices`, {
         ...formData,
-        invoice_items: formData.items.map((item) => ({
-          ...item,
-          quantity: Number(item.quantity),
-          unit_price: Number(item.unit_price),
-        })),
+        invoice_items: toInvoiceItemsPayload(formData.items),
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -110,9 +107,9 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
       <h2 className="mb-6 text-2xl font-bold text-gray-900">Create Invoice</h2>
 
       {/* ==== TOP ROW ==== */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         {/* CLIENT */}
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-medium text-gray-700">
             Client
           </label>
@@ -133,7 +130,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* INVOICE NUMBER */}
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-medium text-gray-700">
             Invoice Number
           </label>
@@ -152,7 +149,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* ISSUE DATE */}
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-medium text-gray-700">
             Issue Date
           </label>
@@ -161,12 +158,12 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
             name="issue_date"
             value={formData.issue_date}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full min-w-0 max-w-full box-border rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         {/* DUE DATE */}
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-medium text-gray-700">
             Due Date
           </label>
@@ -175,7 +172,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSuccess }) {
             name="due_date"
             value={formData.due_date}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+            className={`mt-1 block w-full min-w-0 max-w-full box-border rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
               errors.due_date ? "border-red-500" : ""
             }`}
           />

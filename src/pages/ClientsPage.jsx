@@ -1,5 +1,5 @@
 // src/pages/ClientsPage.jsx
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import DashboardPageLoader from "../components/DashboardPageLoader";
@@ -20,6 +20,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import useModalScrollLock from "../hooks/useModalScrollLock";
 
 export default function ClientsPage() {
   const navigate = useNavigate();
@@ -375,6 +376,8 @@ export default function ClientsPage() {
 // CLIENT FORM (Create / Edit)
 // ------------------------------------------------------------------
 function ClientFormModal({ client, onClose, onSuccess }) {
+  const modalRef = useRef(null);
+  useModalScrollLock(true, modalRef);
   const isEdit = !!client;
   const [form, setForm] = useState({
     name: client?.name || "",
@@ -426,10 +429,11 @@ function ClientFormModal({ client, onClose, onSuccess }) {
 
   return (
     <motion.div
+      ref={modalRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
+      className="modal-scroll-lock fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -437,7 +441,7 @@ function ClientFormModal({ client, onClose, onSuccess }) {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 sm:p-8"
       >
         <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -534,12 +538,16 @@ function ClientFormModal({ client, onClose, onSuccess }) {
 // CLIENT VIEW MODAL
 // ------------------------------------------------------------------
 function ClientViewModal({ client, onClose, onEdit }) {
+  const modalRef = useRef(null);
+  useModalScrollLock(true, modalRef);
+
   return (
     <motion.div
+      ref={modalRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
+      className="modal-scroll-lock fixed inset-0 bg-gray-900/60 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -547,7 +555,7 @@ function ClientViewModal({ client, onClose, onEdit }) {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-xl w-full p-6 sm:p-8 overflow-hidden relative"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 sm:p-8 relative"
       >
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20" />
 
